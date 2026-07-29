@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Spot the trap — link safety training</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap');
+
+  * { box-sizing: border-box; }
+  html, body { margin: 0; }
+  body {
+    font-family: "Inter", sans-serif;
+    background:
+      radial-gradient(900px 500px at 82% -120px, rgba(255,176,32,.09), transparent 60%),
+      #0f1620;
+    color: #e8edf2;
+    min-height: 100vh;
+    padding: 48px 20px 120px;
+  }
+  .wrap { max-width: 680px; margin: 0 auto; }
+
+  .eyebrow {
+    display: inline-flex; align-items: center; gap: 8px;
+    font-family: "IBM Plex Mono", monospace; font-size: 12px; letter-spacing: .14em;
+    text-transform: uppercase; color: #ffb020;
+    border: 1px solid rgba(255,176,32,.35); border-radius: 999px;
+    padding: 6px 14px; margin-bottom: 22px;
+  }
+  .eyebrow .dot { width: 7px; height: 7px; border-radius: 50%; background: #ffb020; }
+
+  h1 {
+    font-family: "Space Grotesk", sans-serif; font-weight: 700;
+    font-size: clamp(30px, 5.5vw, 46px); line-height: 1.03; letter-spacing: -.02em;
+    margin: 0 0 16px;
+  }
+  h1 .accent { color: #ffb020; }
+  .lede { font-size: 17px; line-height: 1.55; color: #b9c4d0; margin: 0 0 20px; max-width: 58ch; }
+
+  .tip {
+    display: flex; gap: 12px; align-items: flex-start;
+    background: rgba(61,214,196,.06); border: 1px solid rgba(61,214,196,.22);
+    border-radius: 10px; padding: 14px 16px; margin: 0 0 30px; font-size: 14.5px; color: #c7d2dd; line-height: 1.5;
+  }
+  .tip b { color: #3dd6c4; }
+
+  .btn {
+    font-family: "Inter", sans-serif; font-size: 15px; font-weight: 600;
+    border: none; border-radius: 9px; cursor: pointer; padding: 13px 22px;
+  }
+  .btn-primary { background: #ffb020; color: #0f1620; }
+  .btn-primary:hover { background: #ffc247; }
+  .btn-ghost { background: transparent; color: #8a9aad; border: 1px solid rgba(138,154,173,.3); }
+  .btn-ghost:hover { color: #e8edf2; border-color: #8a9aad; }
+
+  .hidden { display: none !important; }
+
+  /* progress */
+  .progress-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
+  .counter { font-family: "IBM Plex Mono", monospace; font-size: 13px; color: #6f8296; letter-spacing: .1em; }
+  .score-pill { font-family: "IBM Plex Mono", monospace; font-size: 13px; color: #b9c4d0; }
+  .bar { height: 4px; background: rgba(255,255,255,.07); border-radius: 4px; overflow: hidden; margin-bottom: 30px; }
+  .bar > i { display: block; height: 100%; background: #ffb020; width: 0; transition: width .3s ease; }
+
+  /* email preview card */
+  .mail {
+    background: #131c28; border: 1px solid rgba(255,255,255,.07); border-radius: 14px;
+    overflow: hidden; margin-bottom: 24px;
+  }
+  .mail-head { padding: 16px 20px 14px; border-bottom: 1px solid rgba(255,255,255,.06); }
+  .mail-from { font-size: 14px; color: #e8edf2; font-weight: 600; }
+  .mail-addr { font-size: 13px; color: #6f8296; font-family: "IBM Plex Mono", monospace; }
+  .mail-subj { font-size: 15px; color: #b9c4d0; margin-top: 6px; }
+  .mail-body { padding: 18px 20px 22px; font-size: 15px; line-height: 1.6; color: #c7d2dd; }
+  .phish-link {
+    color: #4aa3ff; text-decoration: underline; cursor: pointer;
+    font-family: "IBM Plex Mono", monospace; font-size: 14px; word-break: break-all;
+  }
+  .phish-link:hover { color: #6fb6ff; }
+
+  .ask { font-size: 15px; color: #8a9aad; margin: 0 0 14px; }
+  .choices { display: flex; gap: 12px; }
+  .choices .btn { flex: 1; }
+  .btn-safe { background: rgba(61,214,196,.1); color: #3dd6c4; border: 1px solid rgba(61,214,196,.35); }
+  .btn-safe:hover { background: rgba(61,214,196,.18); }
+  .btn-sus { background: rgba(255,92,92,.1); color: #ff7a7a; border: 1px solid rgba(255,92,92,.35); }
+  .btn-sus:hover { background: rgba(255,92,92,.18); }
+  .btn:disabled { opacity: .45; cursor: default; }
+
+  /* reveal */
+  .reveal-panel {
+    margin-top: 22px; border-radius: 12px; padding: 20px;
+    border: 1px solid rgba(255,255,255,.08); background: #131c28;
+  }
+  .verdict { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 16px; margin-bottom: 14px; font-family:"Space Grotesk",sans-serif; }
+  .verdict.right { color: #3dd6c4; }
+  .verdict.wrong { color: #ff7a7a; }
+
+  .trick-badge {
+    display: inline-block; font-family: "IBM Plex Mono", monospace; font-size: 11px;
+    letter-spacing: .1em; text-transform: uppercase; color: #ffb020;
+    background: rgba(255,176,32,.1); border: 1px solid rgba(255,176,32,.28);
+    border-radius: 6px; padding: 4px 10px; margin-bottom: 12px;
+  }
+  .real-dest { margin: 4px 0 14px; }
+  .real-dest .label { font-family:"IBM Plex Mono",monospace; font-size: 11px; letter-spacing:.12em; text-transform: uppercase; color:#6f8296; display:block; margin-bottom: 5px; }
+  .real-dest .url { font-family:"IBM Plex Mono",monospace; font-size: 14px; color:#e8edf2; word-break: break-all; background:#0f1620; border:1px solid rgba(255,255,255,.07); border-radius:7px; padding:9px 12px; display:block; }
+  .explain { font-size: 15px; line-height: 1.6; color: #c7d2dd; margin: 0; }
+  .explain em { color: #ffcf7a; font-style: normal; }
+
+  .next-row { display: flex; justify-content: flex-end; margin-top: 22px; }
+
+  /* final */
+  .final-score { font-family:"Space Grotesk",sans-serif; font-size: 60px; font-weight: 700; color: #ffb020; line-height: 1; margin: 6px 0 4px; }
+  .final-sub { font-size: 15px; color: #8a9aad; margin-bottom: 26px; }
+  .rule {
+    background: linear-gradient(180deg, rgba(255,176,32,.08), rgba(255,176,32,.02));
+    border: 1px solid rgba(255,176,32,.22); border-radius: 14px; padding: 24px; margin-bottom: 26px;
+  }
+  .rule h2 { font-family:"Space Grotesk",sans-serif; font-size: 20px; margin: 0 0 8px; }
+  .rule p { margin: 0; color: #c7d2dd; font-size: 15px; line-height: 1.6; }
+
+  /* fake browser status bar — the signature mechanic */
+  #statusbar {
+    position: fixed; left: 0; bottom: 0; max-width: 90vw;
+    background: #05070a; color: #cfd8e2;
+    font-family: "IBM Plex Mono", monospace; font-size: 12.5px;
+    padding: 6px 14px; border-top-right-radius: 6px;
+    border: 1px solid rgba(255,255,255,.1); border-left: none; border-bottom: none;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    transform: translateY(120%); transition: transform .12s ease; z-index: 50;
+  }
+  #statusbar.show { transform: translateY(0); }
+
+  @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- INTRO -->
+  <section id="intro">
+    <div class="eyebrow"><span class="dot"></span> Link safety · training</div>
+    <h1>Spot the <span class="accent">trap.</span></h1>
+    <p class="lede">
+      None of these use an obvious misspelled domain. Some ride on a genuinely trusted
+      site, some hide where they really go, and a couple are perfectly safe. For each one,
+      decide: would you click it?
+    </p>
+    <div class="tip">
+      <span>💡</span>
+      <div><b>Do what you'd do for real:</b> hover a link to preview its true destination in the
+      status bar (bottom-left) — just like your email client shows you. On a phone you'd long-press instead.</div>
+    </div>
+    <button class="btn btn-primary" id="startBtn">Start the quiz</button>
+  </section>
+
+  <!-- QUIZ -->
+  <section id="quiz" class="hidden">
+    <div class="progress-head">
+      <span class="counter" id="counter">01 / 09</span>
+      <span class="score-pill" id="scorePill">Score 0</span>
+    </div>
+    <div class="bar"><i id="barFill"></i></div>
+
+    <div class="mail">
+      <div class="mail-head">
+        <div class="mail-from" id="mFrom"></div>
+        <div class="mail-addr" id="mAddr"></div>
+        <div class="mail-subj" id="mSubj"></div>
+      </div>
+      <div class="mail-body">
+        <span id="mBody"></span>
+        <div style="margin-top:12px;"><a class="phish-link" id="mLink"></a></div>
+      </div>
+    </div>
+
+    <p class="ask">Would you trust this link?</p>
+    <div class="choices">
+      <button class="btn btn-safe" id="answerSafe">Looks safe</button>
+      <button class="btn btn-sus" id="answerSus">Suspicious</button>
+    </div>
+
+    <div class="reveal-panel hidden" id="revealPanel">
+      <div class="verdict" id="verdict"></div>
+      <div class="trick-badge" id="trickBadge"></div>
+      <div class="real-dest">
+        <span class="label">Where it actually goes</span>
+        <span class="url" id="realUrl"></span>
+      </div>
+      <p class="explain" id="explain"></p>
+      <div class="next-row"><button class="btn btn-primary" id="nextBtn">Next →</button></div>
+    </div>
+  </section>
+
+  <!-- FINAL -->
+  <section id="final" class="hidden">
+    <div class="eyebrow"><span class="dot"></span> Results</div>
+    <div class="final-score" id="finalScore">0 / 9</div>
+    <div class="final-sub" id="finalSub"></div>
+    <div class="rule">
+      <h2>The rule that beats all nine tricks</h2>
+      <p>You can't judge a link by whether the brand name looks right — a perfect
+      <em style="color:#ffcf7a;font-style:normal">sharepoint.com</em> link can still be a trap, and a shortened link tells you nothing.
+      So don't click login or "verify" links in unexpected messages at all. Go to the service
+      yourself with a bookmark or by typing the address, and on your phone, be extra wary of QR codes.</p>
+    </div>
+    <button class="btn btn-ghost" id="restartBtn">Run it again</button>
+  </section>
+
+</div>
+
+<div id="statusbar"></div>
+
+<script>
+(function () {
+  "use strict";
+
+  // isSafe = whether "Looks safe" is the correct answer
+  var Q = [
+    {
+      from: "Microsoft Outlook", addr: "no-reply@mail-quota-verify.co",
+      subj: "Action required: your mailbox is almost full",
+      body: "Your mailbox has reached 98% of its storage limit. Verify now to keep receiving email:",
+      display: "https://outlook.office365.com/owa/",
+      href: "http://mail-quota-verify.co/login",
+      isSafe: false,
+      trick: "The text is a costume",
+      explain: "The blue text reads office365.com, but link text is just a label — it can say anything. Hovering shows the real destination: <em>mail-quota-verify.co</em>. Always trust the status bar, never the words."
+    },
+    {
+      from: "Microsoft Account Team", addr: "security@account-security-check.net",
+      subj: "Unusual sign-in activity detected",
+      body: "We noticed a sign-in from a new device. Review and secure your account:",
+      display: "https://microsoft.com.account-security-check.net/signin",
+      href: "https://microsoft.com.account-security-check.net/signin",
+      isSafe: false,
+      trick: "Subdomain burial",
+      explain: "Read a URL right-to-left to find the real owner: the registered domain here is <em>account-security-check.net</em>. \"microsoft.com\" is just a subdomain it created to fool your eye. Everything left of the real domain is attacker-controlled."
+    },
+    {
+      from: "Amazon.com", addr: "auto-confirm@amazon.com",
+      subj: "Your order has shipped",
+      body: "You placed an order 12 minutes ago. Track your package:",
+      display: "https://www.amazon.com/gp/css/order-history",
+      href: "https://www.amazon.com/gp/css/order-history",
+      isSafe: true,
+      trick: "Legit — expected and correct",
+      explain: "Correct registered domain (<em>amazon.com</em>), HTTPS, and — crucially — you just placed this order yourself minutes ago. Expected + right domain + you initiated it is the profile of a safe link. The goal isn't to fear every link."
+    },
+    {
+      from: "Office 365", addr: "noreply@microsoftonline.com",
+      subj: "Re-authenticate to continue",
+      body: "Your session has expired. Sign in again to restore access:",
+      display: "https://login.microsoftonline.com@193.42.11.8/auth",
+      href: "http://193.42.11.8/auth",
+      isSafe: false,
+      trick: "The @ redirect",
+      explain: "Browsers ignore everything before the <em>@</em> in a URL — it's treated as a username. So this doesn't go to microsoftonline.com at all; it goes to the raw IP <em>193.42.11.8</em>. The trusted-looking part is pure decoy."
+    },
+    {
+      from: "Apple", addr: "appleid@аpple.com",
+      subj: "Your Apple ID was used to sign in",
+      body: "If this wasn't you, verify your identity immediately:",
+      display: "https://аpple.com/verify",
+      href: "https://xn--pple-43d.com/verify  (punycode)",
+      isSafe: false,
+      trick: "Homograph (lookalike letters)",
+      explain: "The first letter of \"apple\" is a Cyrillic <em>а</em>, not a Latin one. It renders identically but resolves to a completely different domain — the browser's punycode form is <em>xn--pple-43d.com</em>. You can't catch this by eye; your password manager refusing to autofill is the real tell."
+    },
+    {
+      from: "Chase Online", addr: "no.reply.alerts@chase.com",
+      subj: "Password reset requested",
+      body: "You requested a password reset a moment ago. Continue here:",
+      display: "https://www.chase.com/personal/password-reset",
+      href: "https://www.chase.com/personal/password-reset",
+      isSafe: true,
+      trick: "Legit — you started this flow",
+      explain: "Correct domain, HTTPS, and you triggered the reset yourself seconds earlier. When you initiated the action and the registered domain is exactly right, that's a link you can trust. Context is the deciding factor."
+    },
+    {
+      from: "Google Docs", addr: "notify@docs.google.com",
+      subj: "A document was shared with you",
+      body: "\"Q3 Compensation Review\" was shared with you. Open it:",
+      display: "https://www.google.com/url?q=http://o365-credential.io/login",
+      href: "https://www.google.com/url?q=http://o365-credential.io/login",
+      isSafe: false,
+      trick: "Open redirect",
+      explain: "The link genuinely starts on <em>google.com</em> — which is exactly why it slips past many email filters — but the redirect parameter bounces you onward to <em>o365-credential.io</em>. Trusted starting domain, untrusted final destination."
+    },
+    {
+      from: "Finance Team", addr: "share@company-share.sharepoint.com",
+      subj: "Invoice shared: Q3-Vendor-Payment.pdf",
+      body: "A document was shared with you and requires sign-in to view:",
+      display: "https://company-share.sharepoint.com/:b:/g/finance/Ef8dQ21x/Invoice",
+      href: "https://company-share.sharepoint.com/:b:/g/finance/Ef8dQ21x/Invoice",
+      isSafe: false,
+      trick: "Real host, fake content",
+      explain: "This really is <em>sharepoint.com</em> — valid domain, valid certificate. But anyone can host a file (or a fake login page) on SharePoint, OneDrive, or Google Drive. A trusted host doesn't vouch for the content. An unexpected \"shared invoice\" that asks you to sign in again is the tell — verify with Finance directly."
+    },
+    {
+      from: "DHL Express", addr: "delivery@dhl-parcel-notice.info",
+      subj: "Delivery failed — reschedule required",
+      body: "Your package couldn't be delivered. Reschedule within 24 hours:",
+      display: "https://bit.ly/4kPz9Qn",
+      href: "https://bit.ly/4kPz9Qn  →  hidden until you land",
+      isSafe: false,
+      trick: "Hidden destination",
+      explain: "A shortener shows you nothing about where you'll end up. Pair that with an unexpected \"failed delivery\" message — a classic smishing lure that creates urgency — and it's a clear pass. Go to the courier's site directly instead of clicking."
+    }
+  ];
+
+  var idx = 0, score = 0, answered = false;
+
+  var el = function (id) { return document.getElementById(id); };
+  var intro = el('intro'), quiz = el('quiz'), final = el('final');
+  var statusbar = el('statusbar');
+
+  el('startBtn').addEventListener('click', function () {
+    intro.classList.add('hidden'); quiz.classList.remove('hidden'); render();
+  });
+  el('restartBtn').addEventListener('click', function () {
+    idx = 0; score = 0; final.classList.add('hidden'); quiz.classList.remove('hidden'); render();
+  });
+
+  function pad(n) { return (n < 10 ? '0' : '') + n; }
+
+  function render() {
+    answered = false;
+    var q = Q[idx];
+    el('counter').textContent = pad(idx + 1) + ' / ' + pad(Q.length);
+    el('scorePill').textContent = 'Score ' + score;
+    el('barFill').style.width = ((idx) / Q.length * 100) + '%';
+
+    el('mFrom').textContent = q.from;
+    el('mAddr').textContent = '<' + q.addr + '>';
+    el('mSubj').textContent = q.subj;
+    el('mBody').textContent = q.body;
+
+    var link = el('mLink');
+    link.textContent = q.display;
+    link.onclick = function (e) { e.preventDefault(); }; // never actually navigates
+    // hover-to-preview status bar (desktop). Active DURING the question — rewards hovering.
+    link.onmouseenter = function () { statusbar.textContent = q.href; statusbar.classList.add('show'); };
+    link.onmouseleave = function () { statusbar.classList.remove('show'); };
+
+    el('answerSafe').disabled = false;
+    el('answerSus').disabled = false;
+    el('revealPanel').classList.add('hidden');
+    window.scrollTo(0, 0);
+  }
+
+  function answer(saidSafe) {
+    if (answered) return;
+    answered = true;
+    var q = Q[idx];
+    var correct = (saidSafe === q.isSafe);
+    if (correct) score++;
+    el('scorePill').textContent = 'Score ' + score;
+    el('answerSafe').disabled = true;
+    el('answerSus').disabled = true;
+
+    var v = el('verdict');
+    v.className = 'verdict ' + (correct ? 'right' : 'wrong');
+    v.textContent = correct
+      ? '✓ Correct — ' + (q.isSafe ? 'this one is safe' : 'this is a trap')
+      : '✗ Not quite — ' + (q.isSafe ? 'this one was actually safe' : 'this is a trap');
+
+    el('trickBadge').textContent = q.trick;
+    el('realUrl').textContent = q.href;
+    el('explain').innerHTML = q.explain;
+    el('revealPanel').classList.remove('hidden');
+    el('barFill').style.width = ((idx + 1) / Q.length * 100) + '%';
+  }
+
+  el('answerSafe').addEventListener('click', function () { answer(true); });
+  el('answerSus').addEventListener('click', function () { answer(false); });
+
+  el('nextBtn').addEventListener('click', function () {
+    statusbar.classList.remove('show');
+    idx++;
+    if (idx < Q.length) { render(); }
+    else { showFinal(); }
+  });
+
+  function showFinal() {
+    quiz.classList.add('hidden'); final.classList.remove('hidden');
+    el('finalScore').textContent = score + ' / ' + Q.length;
+    var sub;
+    var pct = score / Q.length;
+    if (pct === 1) sub = "Perfect. You read the destination, not the disguise.";
+    else if (pct >= 0.75) sub = "Strong — you caught most of the tricks. Review the ones that slipped past.";
+    else if (pct >= 0.5) sub = "Halfway there. The subtle ones (open redirect, real-host, homograph) are worth a second look.";
+    else sub = "This is exactly why we train. None of these relied on a misspelled domain — and that's the point.";
+    el('finalSub').textContent = sub;
+    window.scrollTo(0, 0);
+  }
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sign in to your account</title>
+<!--
+  ============================================================================
+  PHISHING AWARENESS TRAINING DEMO  —  SAFE BY DESIGN
+  ============================================================================
+  This page is a TRAINING TOOL, not a phishing kit. Two safeguards make the
+  difference:
+
+  1. NO CREDENTIALS ARE EVER CAPTURED. The password field's value is never
+     read, stored, logged, or transmitted anywhere. On submit the page simply
+     switches to the educational reveal. (Search this file for "password" —
+     you will not find its value being used.)
+
+  2. The leaked click-metadata (IP, browser, OS, etc.) is shown back to the
+     PERSON WHO CLICKED as the teaching moment. It is not sent to any
+     attacker-controlled server. The only outbound call is to a public IP
+     geolocation API so the demo can show the viewer their own approximate
+     location — the same info any website already sees.
+
+  Run this only against people who have consented to security training, with
+  sign-off from leadership. Never use it to actually deceive or shame anyone.
+  ============================================================================
+-->
+<style>
+  /* ---------- Microsoft 365 lookalike (faithful on purpose) ---------- */
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; }
+  body {
+    font-family: "Segoe UI", "Segoe UI Web (West European)", -apple-system, BlinkMacSystemFont, Roboto, sans-serif;
+    background: #f2f2f2;
+    color: #1b1b1b;
+  }
+
+  /* subtle Microsoft-style background wash */
+  #ms-stage {
+    min-height: 100%;
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    padding: 0 16px;
+    background:
+      radial-gradient(1200px 600px at 50% -200px, #eef3fb 0%, #f2f2f2 60%);
+  }
+
+  .ms-card {
+    width: 440px;
+    max-width: 100%;
+    margin-top: 15vh;
+    background: #fff;
+    padding: 44px;
+    box-shadow: 0 2px 6px rgba(0,0,0,.16);
+    animation: cardIn .25s ease both;
+  }
+  @keyframes cardIn { from { opacity: 0; transform: translateY(6px); } }
+
+  .ms-logo { display: flex; align-items: center; gap: 8px; margin-bottom: 16px; }
+  .ms-logo .squares {
+    width: 21px; height: 21px;
+    display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; gap: 1px;
+  }
+  .ms-logo .squares i { display: block; }
+  .ms-logo .squares i:nth-child(1){ background:#f25022; }
+  .ms-logo .squares i:nth-child(2){ background:#7fba00; }
+  .ms-logo .squares i:nth-child(3){ background:#00a4ef; }
+  .ms-logo .squares i:nth-child(4){ background:#ffb900; }
+  .ms-logo span { font-size: 15px; color: #5e5e5e; font-weight: 600; }
+
+  .ms-card h1 { font-size: 24px; font-weight: 600; margin: 0 0 12px; }
+
+  .ms-back { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; font-size: 15px; }
+  .ms-back button {
+    background: none; border: none; cursor: pointer; padding: 2px; line-height: 0;
+  }
+  .ms-account { display: flex; align-items: center; gap: 8px; font-size: 15px; margin: 0 0 16px; }
+
+  .ms-field {
+    width: 100%;
+    border: none;
+    border-bottom: 1px solid #666;
+    padding: 6px 0 6px;
+    font-size: 15px;
+    outline: none;
+    background: transparent;
+  }
+  .ms-field:focus { border-bottom: 2px solid #0067b8; }
+  .ms-field::placeholder { color: #666; }
+
+  .ms-link { color: #0067b8; text-decoration: none; font-size: 13px; }
+  .ms-link:hover { text-decoration: underline; }
+
+  .ms-row-links { margin: 8px 0 22px; display: flex; flex-direction: column; gap: 8px; }
+  .ms-actions { display: flex; justify-content: flex-end; }
+  .ms-btn {
+    background: #0067b8; color: #fff; border: none;
+    min-width: 108px; height: 32px; font-size: 15px; cursor: pointer;
+  }
+  .ms-btn:hover { background: #005da6; }
+
+  .ms-footer {
+    position: fixed; bottom: 0; right: 0; left: 0;
+    display: flex; justify-content: flex-end; gap: 18px;
+    padding: 10px 20px; font-size: 12px; color: #666; background: #f2f2f2;
+  }
+  .ms-footer a { color: #666; text-decoration: none; }
+
+  .hidden { display: none !important; }
+
+  /* ---------- The reveal: security-briefing aesthetic ---------- */
+  @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap');
+
+  #reveal {
+    min-height: 100vh;
+    background:
+      radial-gradient(900px 500px at 80% -100px, rgba(245,166,35,.10), transparent 60%),
+      #0f1620;
+    color: #e8edf2;
+    font-family: "Inter", sans-serif;
+    padding: 56px 20px 80px;
+  }
+  .reveal-wrap { max-width: 760px; margin: 0 auto; }
+
+  .flag-badge {
+    display: inline-flex; align-items: center; gap: 8px;
+    font-family: "IBM Plex Mono", monospace; font-size: 12px; letter-spacing: .12em;
+    text-transform: uppercase; color: #ffb020;
+    border: 1px solid rgba(255,176,32,.35); border-radius: 999px;
+    padding: 6px 14px; margin-bottom: 26px;
+  }
+  .flag-badge .dot { width: 7px; height: 7px; border-radius: 50%; background: #ffb020; animation: pulse 1.4s infinite; }
+  @keyframes pulse { 0%,100%{opacity:1;} 50%{opacity:.3;} }
+
+  #reveal h1 {
+    font-family: "Space Grotesk", sans-serif; font-weight: 700;
+    font-size: clamp(34px, 6vw, 54px); line-height: 1.02; margin: 0 0 18px;
+    letter-spacing: -.02em;
+  }
+  #reveal h1 .accent { color: #ffb020; }
+  .lede { font-size: 18px; line-height: 1.55; color: #b9c4d0; max-width: 60ch; margin: 0 0 40px; }
+
+  .section-label {
+    font-family: "IBM Plex Mono", monospace; font-size: 12px; letter-spacing: .14em;
+    text-transform: uppercase; color: #6f8296; margin: 44px 0 14px;
+    display: flex; align-items: center; gap: 12px;
+  }
+  .section-label::after { content:""; flex:1; height:1px; background: rgba(111,130,150,.22); }
+
+  /* captured-data as a system log */
+  .log {
+    background: #131c28; border: 1px solid rgba(255,255,255,.06); border-radius: 12px;
+    font-family: "IBM Plex Mono", monospace; font-size: 14px; overflow: hidden;
+  }
+  .log-row {
+    display: grid; grid-template-columns: 190px 1fr; gap: 16px;
+    padding: 13px 20px; border-bottom: 1px solid rgba(255,255,255,.05);
+  }
+  .log-row:last-child { border-bottom: none; }
+  .log-key { color: #6f8296; }
+  .log-val { color: #e8edf2; word-break: break-word; }
+  .log-val.pending { color: #6f8296; font-style: italic; }
+
+  .cred-note {
+    display: flex; gap: 14px; align-items: flex-start;
+    background: rgba(61,214,196,.06); border: 1px solid rgba(61,214,196,.25);
+    border-radius: 12px; padding: 18px 20px; margin-top: 16px;
+  }
+  .cred-note .ok { color: #3dd6c4; font-family:"IBM Plex Mono",monospace; font-size: 13px; flex-shrink:0; margin-top:1px;}
+  .cred-note p { margin: 0; color: #c7d2dd; font-size: 15px; line-height: 1.5; }
+  .cred-note strong { color: #eaf2f0; }
+
+  .flags { list-style: none; padding: 0; margin: 0; display: grid; gap: 12px; }
+  .flags li {
+    display: grid; grid-template-columns: 34px 1fr; gap: 14px; align-items: start;
+    background: #131c28; border: 1px solid rgba(255,255,255,.06);
+    border-left: 3px solid #ff5c5c; border-radius: 10px; padding: 16px 18px;
+  }
+  .flags .mark {
+    width: 34px; height: 34px; border-radius: 8px; display: grid; place-items: center;
+    background: rgba(255,92,92,.12); color: #ff7a7a; font-family:"IBM Plex Mono",monospace; font-weight:500;
+  }
+  .flags b { display: block; font-size: 15px; margin-bottom: 3px; color: #f2f6fa; }
+  .flags span { font-size: 14px; color: #93a2b3; line-height: 1.5; }
+
+  .closer {
+    margin-top: 48px; padding: 28px; border-radius: 14px;
+    background: linear-gradient(180deg, rgba(255,176,32,.08), rgba(255,176,32,.02));
+    border: 1px solid rgba(255,176,32,.22);
+  }
+  .closer h2 { font-family:"Space Grotesk",sans-serif; font-size: 22px; margin: 0 0 8px; }
+  .closer p { margin: 0; color: #c7d2dd; font-size: 15px; line-height: 1.6; }
+
+  .restart {
+    margin-top: 34px; background: transparent; color: #8a9aad;
+    border: 1px solid rgba(138,154,173,.3); border-radius: 8px;
+    padding: 11px 20px; font-size: 14px; cursor: pointer; font-family: "Inter", sans-serif;
+  }
+  .restart:hover { color: #e8edf2; border-color: #8a9aad; }
+
+  @media (max-width: 520px) {
+    .log-row { grid-template-columns: 1fr; gap: 3px; }
+    .ms-card { padding: 30px 24px; margin-top: 8vh; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation: none !important; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ===================== SCREEN 1: EMAIL ===================== -->
+<div id="ms-stage">
+  <div class="ms-card" id="screen-email">
+    <div class="ms-logo"><span class="squares"><i></i><i></i><i></i><i></i></span><span>Microsoft</span></div>
+    <h1>Sign in</h1>
+    <input class="ms-field" id="emailInput" type="email" placeholder="Email, phone, or Skype" autocomplete="username" autofocus>
+    <div class="ms-row-links">
+      <div style="font-size:13px;">No account? <a class="ms-link" href="#" onclick="return false;">Create one!</a></div>
+      <div><a class="ms-link" href="#" onclick="return false;">Can't access your account?</a></div>
+    </div>
+    <div class="ms-actions">
+      <button class="ms-btn" id="nextBtn">Next</button>
+    </div>
+  </div>
+
+  <!-- ===================== SCREEN 2: PASSWORD ===================== -->
+  <div class="ms-card hidden" id="screen-pass">
+    <div class="ms-logo"><span class="squares"><i></i><i></i><i></i><i></i></span><span>Microsoft</span></div>
+    <div class="ms-account">
+      <button class="ms-back" id="backBtn" title="Back" style="border:none;background:none;cursor:pointer;">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M15 18l-6-6 6-6" stroke="#1b1b1b" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+      <span id="accountEmail">someone@example.com</span>
+    </div>
+    <h1>Enter password</h1>
+    <input class="ms-field" id="passInput" type="password" placeholder="Password" autocomplete="current-password">
+    <div class="ms-row-links">
+      <div><a class="ms-link" href="#" onclick="return false;">Forgot password?</a></div>
+    </div>
+    <div class="ms-actions">
+      <button class="ms-btn" id="signinBtn">Sign in</button>
+    </div>
+  </div>
+</div>
+
+<div class="ms-footer" id="ms-footer">
+  <a href="#" onclick="return false;">Terms of use</a>
+  <a href="#" onclick="return false;">Privacy &amp; cookies</a>
+  <a href="#" onclick="return false;">•••</a>
+</div>
+
+<!-- ===================== SCREEN 3: THE REVEAL ===================== -->
+<div id="reveal" class="hidden">
+  <div class="reveal-wrap">
+    <div class="flag-badge"><span class="dot"></span> Security awareness · training exercise</div>
+    <h1>If this were real,<br>you'd already be <span class="accent">compromised.</span></h1>
+    <p class="lede">
+      That page wasn't Microsoft. It was a lookalike — and you're one of the people
+      our team is training to spot the difference. Here's exactly what an attacker
+      would have collected, and the tells that gave it away.
+    </p>
+
+    <div class="section-label">Captured the moment you clicked — before typing anything</div>
+    <div class="log" id="clickLog">
+      <div class="log-row"><span class="log-key">public_ip</span><span class="log-val pending" data-k="ip">resolving…</span></div>
+      <div class="log-row"><span class="log-key">approx_location</span><span class="log-val pending" data-k="loc">resolving…</span></div>
+      <div class="log-row"><span class="log-key">isp / network</span><span class="log-val pending" data-k="isp">resolving…</span></div>
+      <div class="log-row"><span class="log-key">operating_system</span><span class="log-val" data-k="os">—</span></div>
+      <div class="log-row"><span class="log-key">browser</span><span class="log-val" data-k="browser">—</span></div>
+      <div class="log-row"><span class="log-key">device_type</span><span class="log-val" data-k="device">—</span></div>
+      <div class="log-row"><span class="log-key">screen</span><span class="log-val" data-k="screen">—</span></div>
+      <div class="log-row"><span class="log-key">language</span><span class="log-val" data-k="lang">—</span></div>
+      <div class="log-row"><span class="log-key">timezone</span><span class="log-val" data-k="tz">—</span></div>
+      <div class="log-row"><span class="log-key">came_from</span><span class="log-val" data-k="ref">—</span></div>
+      <div class="log-row"><span class="log-key">visited_at</span><span class="log-val" data-k="time">—</span></div>
+    </div>
+
+    <div class="section-label">And what you typed</div>
+    <div class="log">
+      <div class="log-row"><span class="log-key">username</span><span class="log-val" data-k="email">—</span></div>
+      <div class="log-row"><span class="log-key">password</span><span class="log-val" style="color:#3dd6c4">NOT CAPTURED — this is a drill</span></div>
+    </div>
+    <div class="cred-note">
+      <span class="ok">✓ safe</span>
+      <p>Your password was <strong>never read, stored, or sent anywhere</strong> — this is a training page.
+      But a real phishing site would have captured it the instant you hit “Sign in,” along with everything in the log above.</p>
+    </div>
+
+    <div class="section-label">What should have tipped you off</div>
+    <ul class="flags">
+      <li><span class="mark">01</span><div><b>The web address</b><span>Real Microsoft sign-in lives on <em>login.microsoftonline.com</em>. Always read the domain in the address bar before typing a password — attackers use lookalikes like <em>login-microsoft.secure-verify.com</em>.</span></div></li>
+      <li><span class="mark">02</span><div><b>How you got here</b><span>A link in an unexpected email, text, or chat asking you to “verify,” “re-authenticate,” or “review a document” is the classic delivery method. Urgency is the bait.</span></div></li>
+      <li><span class="mark">03</span><div><b>You weren't expecting it</b><span>If you didn't just try to sign in yourself, a login prompt appearing out of nowhere deserves suspicion — even if it looks perfect.</span></div></li>
+      <li><span class="mark">04</span><div><b>Trust the passkey / autofill gap</b><span>Your password manager won't offer to fill credentials on a spoofed domain. If autofill doesn't recognize the site, that silence is a warning.</span></div></li>
+    </ul>
+
+    <div class="closer">
+      <h2>What to do instead</h2>
+      <p>Don't click login links in messages. Navigate to services yourself — type the address or use a bookmark. When in doubt, forward the message to IT and delete it. Reporting a suspicious email is always the right call, and you'll never be in trouble for asking.</p>
+    </div>
+
+    <button class="restart" id="restartBtn">Restart the demo</button>
+  </div>
+</div>
+
+<script>
+(function () {
+  "use strict";
+
+  var screenEmail = document.getElementById('screen-email');
+  var screenPass  = document.getElementById('screen-pass');
+  var reveal      = document.getElementById('reveal');
+  var footer      = document.getElementById('ms-footer');
+  var emailInput  = document.getElementById('emailInput');
+  var passInput   = document.getElementById('passInput');
+
+  // ---- Flow: email -> password ----
+  function goToPassword() {
+    var email = (emailInput.value || '').trim();
+    if (!email) { emailInput.focus(); return; }
+    document.getElementById('accountEmail').textContent = email;
+    screenEmail.classList.add('hidden');
+    screenPass.classList.remove('hidden');
+    passInput.focus();
+  }
+  document.getElementById('nextBtn').addEventListener('click', goToPassword);
+  emailInput.addEventListener('keydown', function (e) { if (e.key === 'Enter') goToPassword(); });
+
+  document.getElementById('backBtn').addEventListener('click', function () {
+    screenPass.classList.add('hidden');
+    screenEmail.classList.remove('hidden');
+    emailInput.focus();
+  });
+
+  // ---- Flow: password submit -> reveal ----
+  // NOTE: We deliberately do NOT read passInput.value. The password is never
+  // touched, stored, logged, or transmitted. We only need to know the button
+  // was pressed to trigger the teaching moment.
+  function triggerReveal() {
+    var typedEmail = (emailInput.value || '').trim();
+
+    document.getElementById('ms-stage').classList.add('hidden');
+    footer.classList.add('hidden');
+    reveal.classList.remove('hidden');
+    window.scrollTo(0, 0);
+
+    populateReveal(typedEmail);
+  }
+  document.getElementById('signinBtn').addEventListener('click', triggerReveal);
+  passInput.addEventListener('keydown', function (e) { if (e.key === 'Enter') triggerReveal(); });
+
+  // ---- Reveal population ----
+  function set(key, value) {
+    var el = document.querySelector('#reveal [data-k="' + key + '"]');
+    if (el) { el.textContent = value; el.classList.remove('pending'); }
+  }
+
+  function parseUA() {
+    var ua = navigator.userAgent;
+    var os = 'Unknown';
+    if (/Windows NT 10/.test(ua)) os = 'Windows 10 / 11';
+    else if (/Windows/.test(ua)) os = 'Windows';
+    else if (/iPhone|iPad|iPod/.test(ua)) os = 'iOS';
+    else if (/Mac OS X/.test(ua)) os = 'macOS';
+    else if (/Android/.test(ua)) os = 'Android';
+    else if (/Linux/.test(ua)) os = 'Linux';
+
+    var browser = 'Unknown';
+    if (/Edg\//.test(ua)) browser = 'Microsoft Edge';
+    else if (/OPR\//.test(ua)) browser = 'Opera';
+    else if (/Chrome\//.test(ua)) browser = 'Chrome';
+    else if (/Firefox\//.test(ua)) browser = 'Firefox';
+    else if (/Safari\//.test(ua)) browser = 'Safari';
+
+    var device = /Mobi|Android|iPhone|iPad|iPod/.test(ua) ? 'Mobile / tablet' : 'Desktop / laptop';
+    return { os: os, browser: browser, device: device };
+  }
+
+  function populateReveal(typedEmail) {
+    var info = parseUA();
+    set('os', info.os);
+    set('browser', info.browser);
+    set('device', info.device);
+    set('screen', window.screen.width + ' × ' + window.screen.height + ' px');
+    set('lang', navigator.language || (navigator.languages && navigator.languages[0]) || 'Unknown');
+    try { set('tz', Intl.DateTimeFormat().resolvedOptions().timeZone); } catch (e) { set('tz', 'Unknown'); }
+    set('ref', document.referrer ? document.referrer : 'Opened directly / hidden');
+    set('time', new Date().toString());
+    set('email', typedEmail || '(none entered)');
+
+    // Approx location + IP from a public geolocation API — the same data any
+    // site you visit can already see. Shown back to YOU as the teaching point.
+    fetchGeo();
+  }
+
+  function fetchGeo() {
+    // Try ipwho.is first, fall back to ipapi.co. Fail gracefully offline.
+    fetch('https://ipwho.is/')
+      .then(function (r) { return r.json(); })
+      .then(function (d) {
+        if (!d || d.success === false) throw new Error('no data');
+        set('ip', d.ip || 'Unknown');
+        var loc = [d.city, d.region, d.country].filter(Boolean).join(', ');
+        set('loc', loc || 'Unknown');
+        set('isp', (d.connection && d.connection.isp) || d.isp || 'Unknown');
+      })
+      .catch(function () {
+        return fetch('https://ipapi.co/json/')
+          .then(function (r) { return r.json(); })
+          .then(function (d) {
+            set('ip', d.ip || 'Unknown');
+            set('loc', [d.city, d.region, d.country_name].filter(Boolean).join(', ') || 'Unknown');
+            set('isp', d.org || 'Unknown');
+          })
+          .catch(function () {
+            set('ip', 'Could not resolve (offline?)');
+            set('loc', 'Unavailable');
+            set('isp', 'Unavailable');
+          });
+      });
+  }
+
+  // ---- Restart ----
+  document.getElementById('restartBtn').addEventListener('click', function () {
+    reveal.classList.add('hidden');
+    document.getElementById('ms-stage').classList.remove('hidden');
+    footer.classList.remove('hidden');
+    screenPass.classList.add('hidden');
+    screenEmail.classList.remove('hidden');
+    emailInput.value = '';
+    passInput.value = '';
+    emailInput.focus();
+    window.scrollTo(0, 0);
+  });
+})();
+</script>
+</body>
+</html>
